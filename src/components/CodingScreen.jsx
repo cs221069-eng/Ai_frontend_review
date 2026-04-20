@@ -5,7 +5,7 @@ import Editor from "@monaco-editor/react";
 import "./screens.css";
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+  import.meta.env.VITE_API_BASE_URL || "https://ai-backend-review.vercel.app/api";
 
 const languages = [
   "javascript",
