@@ -62,6 +62,73 @@ const formatTime = (value) => {
   return date.toLocaleDateString();
 };
 
+const ensureArray = (value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  return [];
+};
+
+const normalizeIssues = (value) =>
+  ensureArray(value)
+    .map((issue) => {
+      if (typeof issue === "string") {
+        return { title: issue, severity: "low" };
+      }
+
+      if (issue && typeof issue === "object") {
+        return {
+          title: issue.title || "Untitled issue",
+          severity: issue.severity || "low",
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
+const normalizeSuggestions = (value) =>
+  ensureArray(value)
+    .map((suggestion) => {
+      if (typeof suggestion === "string") {
+        return { title: suggestion };
+      }
+
+      if (suggestion && typeof suggestion === "object") {
+        return {
+          title: suggestion.title || "Untitled suggestion",
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
+const normalizeReview = (value) => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  return {
+    ...value,
+    issues: normalizeIssues(value.issues),
+    suggestions: normalizeSuggestions(value.suggestions),
+  };
+};
+
+const normalizeHistoryItems = (value) => {
+  const items = Array.isArray(value)
+    ? value
+    : Array.isArray(value?.history)
+      ? value.history
+      : [];
+
+  return items
+    .map((item) => normalizeReview(item))
+    .filter(Boolean);
+};
+
 function CodingScreen() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -109,7 +176,7 @@ function CodingScreen() {
         withCredentials: true,
       });
 
-      const items = res.data ?? [];
+      const items = normalizeHistoryItems(res.data);
       setHistoryItems(items);
 
       if (!items.length) {
@@ -179,17 +246,20 @@ function CodingScreen() {
       );
 
       const savedReview = res.data.history;
-      setReview(savedReview);
-      setSelectedHistoryId(savedReview._id);
-      setCode(savedReview.code);
-      setLanguage(savedReview.language);
-      await loadHistory(savedReview._id);
+      const normalizedReview = normalizeReview(savedReview);
+
+      setReview(normalizedReview);
+      setSelectedHistoryId(normalizedReview?._id ?? null);
+      setCode(normalizedReview?.code || "");
+      setLanguage(normalizedReview?.language || language);
+      await loadHistory(normalizedReview?._id);
     } catch (err) {
       console.error(err);
       if (err.response?.status === 422 && err.response?.data?.review) {
-        setReview(err.response.data.review);
-        setCode(err.response.data.review.code);
-        setLanguage(err.response.data.review.language);
+        const normalizedReview = normalizeReview(err.response.data.review);
+        setReview(normalizedReview);
+        setCode(normalizedReview?.code || "");
+        setLanguage(normalizedReview?.language || language);
       }
       const message = getRequestErrorMessage(err, "Review failed");
       setError(message);
@@ -208,7 +278,7 @@ function CodingScreen() {
       const res = await axios.get(`${API_BASE}/history/${item._id}`, {
         withCredentials: true,
       });
-      setReview(res.data);
+      setReview(normalizeReview(res.data));
     } catch (err) {
       console.error(err);
       const message = getRequestErrorMessage(err, "Failed to open review");
