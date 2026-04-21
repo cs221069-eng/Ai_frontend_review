@@ -237,52 +237,56 @@ function CodingScreen() {
   return (
     <section className="coding-screen">
       <aside className="coding-sidebar">
-        <div className="coding-brand">
-          <div className="coding-avatar">
-            <span>{user?.username?.slice(0, 1)?.toUpperCase() || "U"}</span>
+        <div className="coding-sidebar-top">
+          <div className="coding-brand">
+            <div className="coding-avatar">
+              <span>{user?.username?.slice(0, 1)?.toUpperCase() || "U"}</span>
+            </div>
+
+            <div>
+              <h2>{user?.username || "Workspace"}</h2>
+              <p className="coding-subtitle">{user?.email}</p>
+            </div>
           </div>
 
-          <div>
-            <h2>{user?.username || "Workspace"}</h2>
-            <p className="coding-subtitle">{user?.email}</p>
+          <button className="coding-button" onClick={() => resetComposer()}>
+            New review
+          </button>
+        </div>
+
+        <div className="coding-sidebar-bottom">
+          <div className="coding-nav-section">Recent reviews</div>
+
+          <div className="coding-history-list">
+            {isHistoryLoading ? (
+              <p className="coding-empty-state">Loading history...</p>
+            ) : historyItems.length ? (
+              historyItems.map((item) => (
+                <button
+                  key={item._id}
+                  className={
+                    item._id === selectedHistoryId
+                      ? "coding-history-item active"
+                      : "coding-history-item"
+                  }
+                  onClick={() => handleSelectHistory(item)}
+                >
+                  <strong>{item.title}</strong>
+                  <span>{formatTime(item.createdAt)}</span>
+                </button>
+              ))
+            ) : null}
           </div>
+
+          <button className="coding-logout-btn" onClick={handleLogout}>
+            Logout
+          </button>
         </div>
-
-        <button className="coding-button" onClick={() => resetComposer()}>
-          New review
-        </button>
-
-        <div className="coding-nav-section">Recent reviews</div>
-
-        <div className="coding-history-list">
-          {isHistoryLoading ? (
-            <p className="coding-empty-state">Loading history...</p>
-          ) : historyItems.length ? (
-            historyItems.map((item) => (
-              <button
-                key={item._id}
-                className={
-                  item._id === selectedHistoryId
-                    ? "coding-history-item active"
-                    : "coding-history-item"
-                }
-                onClick={() => handleSelectHistory(item)}
-              >
-                <strong>{item.title}</strong>
-                <span>{formatTime(item.createdAt)}</span>
-              </button>
-            ))
-          ) : null}
-        </div>
-
-        <button className="coding-logout-btn" onClick={handleLogout}>
-          Logout
-        </button>
       </aside>
 
       <div className="coding-editor-panel">
         <div className="coding-toolbar">
-          <div>
+          <div className="coding-toolbar-copy">
             <p className="coding-kicker">AI code review workspace</p>
             <h1>{review?.title || "Start a fresh review"}</h1>
           </div>
