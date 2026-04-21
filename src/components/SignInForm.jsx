@@ -2,9 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./screens.css";
-
-const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://ai-backend-review.vercel.app/api";
+import { API_BASE } from "../utils/api";
 
 function SignInForm() {
 const navigate = useNavigate();
